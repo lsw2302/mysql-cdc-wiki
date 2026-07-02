@@ -9,7 +9,7 @@
 
 - 表模型：PRIMARY KEY
 - 主键：`__table` + `id`
-- 作用：把分表（例如 user00-user99）合并到一张逻辑表
+- 作用：把多个分表（例如 user00-user99）合并到一张逻辑表
 
 关键点：
 
@@ -38,20 +38,20 @@
 - 派生目标列
   - `__op = if(__op_raw = 'd', 1, 0)`
     - 1 表示删除
-    - 0 表示 upsert
+    - 0 表示插入或更新
   - `__source_ts_ms = ifnull(__source_ts_ms_raw, 0)`
   - `create_time` / `update_time`：由毫秒时间戳转换成 DATETIME
 
 消费参数说明：
 
 - `property.group.id = starrocks_user_cdc`
-  - Routine Load 对应 Kafka 消费组
+  - Routine Load 对应的 Kafka 消费组
 - `property.kafka_default_offsets = OFFSET_BEGINNING`
-  - 首次任务从最早位点开始读
-  - 如果只想接入新数据，可改成 `OFFSET_END`
+  - 首次创建任务时从最早位点开始消费
+  - 如果只希望接入新数据，可改成 `OFFSET_END`
 
 ## 建议执行顺序
 
 1. 先执行 user.sql 建表
 2. 再执行 cdc_user_routine_load.sql 创建导入任务
-3. 使用 SHOW ROUTINE LOAD 和 SHOW ROUTINE LOAD TASK 检查状态与错误
+3. 使用 SHOW ROUTINE LOAD 和 SHOW ROUTINE LOAD TASK 检查任务状态与错误信息
