@@ -2,6 +2,14 @@
 
 目标：基于当前仓库现有配置，稳定跑通 MySQL -> Debezium -> Kafka -> StarRocks，并保证删除事件生效、全量晚到不覆盖增量新值。
 
+![alt text](image.png)
+
+![alt text](image-1.png)
+
+![alt text](image-2.png)
+
+![alt text](image-3.png)
+
 ## 1. 先看项目里的真源配置
 
 以下文件是当前项目可直接执行的配置真源：
