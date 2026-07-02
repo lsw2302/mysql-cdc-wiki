@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  starrocks:
+    image: starrocks/allin1-ubuntu:3.3.16
+    container_name: starrocks
+    restart: unless-stopped
+    ports:
+      - "8030:8030"
+      - "9020:9020"
+      - "9030:9030"
+      - "8040:8040"
+    volumes:
+      - ./fe-meta:/data/deploy/starrocks/fe/meta
+      - ./be-storage:/data/deploy/starrocks/be/storage
+    networks:
+      - default
+      - shared
+
+networks:
+  shared:
+    external: true
+    name: shared-network

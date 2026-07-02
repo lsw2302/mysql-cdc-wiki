@@ -1,0 +1,81 @@
+version: "3.8"
+
+services:
+  kafka:
+    image: quay.io/debezium/kafka:3.5
+    container_name: kafka
+    hostname: kafka
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+    volumes:
+      - ./kafka-data:/kafka/data
+    environment:
+      NODE_ROLE: combined
+      NODE_ID: 1
+      CLUSTER_ID: 5L6g3nShT-eMCtK--X86sw
+
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+    networks:
+      - default
+      - shared
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:latest
+    container_name: kafka-ui
+    restart: unless-stopped
+    ports:
+      - "1818:8080"
+    environment:
+      DYNAMIC_CONFIG_ENABLED: "true"
+
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+
+      # 直接管理 Kafka Connect
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: connect
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://debezium-connect:8083
+    networks:
+      - default
+      - shared
+    depends_on:
+      - kafka
+      - debezium-connect
+
+  debezium-connect:
+    image: quay.io/debezium/connect:3.5
+    container_name: debezium-connect
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+
+      GROUP_ID: connect-cluster
+
+      CONFIG_STORAGE_TOPIC: connect_configs
+      OFFSET_STORAGE_TOPIC: connect_offsets
+      STATUS_STORAGE_TOPIC: connect_statuses
+
+      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      STATUS_STORAGE_REPLICATION_FACTOR: 1
+
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+
+      REST_ADVERTISED_HOST_NAME: debezium-connect
+
+      PLUGIN_PATH: /kafka/connect
+    networks:
+      - default
+      - shared
+    depends_on:
+      - kafka
+networks:
+  shared:
+    external: true
+    name: shared-network

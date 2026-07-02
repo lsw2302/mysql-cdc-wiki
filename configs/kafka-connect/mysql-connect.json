@@ -1,0 +1,40 @@
+{
+  "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+
+  "database.hostname": "host.docker.internal",
+  "database.port": "3306",
+  "database.user": "debezium",
+  "database.password": "xxxx",
+
+  "database.server.id": "10001",
+  "topic.prefix": "mysql-user",
+
+  "database.include.list": "test",
+  "table.include.list": "test\\.user[0-9]{2}",
+
+  "snapshot.mode": "initial",
+  "snapshot.locking.mode": "none",
+  "include.schema.changes": "false",
+
+  "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
+  "schema.history.internal.kafka.topic": "schemahistory.mysql-user",
+
+  "heartbeat.interval.ms": "5000",
+
+  "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+  "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+  "key.converter.schemas.enable": "false",
+  "value.converter.schemas.enable": "false",
+
+  "transforms": "Reroute,unwrap",
+
+  "transforms.Reroute.type": "io.debezium.transforms.ByLogicalTableRouter",
+  "transforms.Reroute.topic.regex": "(.*)\\.user[0-9]{2}",
+  "transforms.Reroute.topic.replacement": "$1.user",
+  "transforms.Reroute.key.enforce.uniqueness": "true",
+
+  "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+  "transforms.unwrap.drop.tombstones": "true",
+  "transforms.unwrap.delete.handling.mode": "rewrite",
+  "transforms.unwrap.add.fields": "table,op,source.ts_ms,source.file,source.pos,source.row"
+}
